@@ -51,7 +51,7 @@ const EditAccountScreen = ({ route, navigation }) => {
 
     const sendOtp = async () => {
         try {
-            await axios.post("http://192.168.1.121:8080/api/v1/auth/send-otp", { email });
+            await axios.post("http://172.16.1.132:8080/api/v1/auth/send-otp", { email });
             Alert.alert("OTP đã được gửi!", "Vui lòng kiểm tra email của bạn.");
         } catch (error) {
             Alert.alert("Lỗi", "Không thể gửi OTP.");
@@ -67,7 +67,7 @@ const EditAccountScreen = ({ route, navigation }) => {
         setLoading(true);
         try {
             await axios.put(
-                `http://192.168.1.121:8080/api/v1/auth/update-user/${userId}`,
+                `http://172.16.1.132:8080/api/v1/auth/update-user/${userId}`,
                 { fullname, email, phone, avatar },
                 { headers: { Authorization: `Bearer ${token}` } }
             );

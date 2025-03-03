@@ -193,7 +193,7 @@ const HomeScreen = () => {
     setIsSorted(true);
 
     try {
-      const response = await axios.get(`http://192.168.1.170:8080/api/v1/product/getall/${page}`);
+      const response = await axios.get(`http://172.16.1.132:8080/api/v1/product/getall/${page}`);
 
       // Kiểm tra response.data có dữ liệu hay không trước khi chuyển thành mảng
       const newProducts = response.data.products
@@ -222,7 +222,7 @@ const HomeScreen = () => {
 
     try {
       const response = await axios.get(
-        `http://192.168.1.170:8080/api/v1/product/sort/${order}`,
+        `http://172.16.1.132:8080/api/v1/product/sort/${order}`,
         {
           headers: { Authorization: `Bearer ${token}` }, // Thêm token nếu cần xác thực
         }
@@ -259,7 +259,7 @@ const HomeScreen = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get("http://192.168.1.170:8080/api/v1/category/getall");
+        const response = await axios.get("http://172.16.1.132:8080/api/v1/category/getall");
         const categoryData = response.data.map((cat) => ({
           label: cat.name,
           value: cat.id.toString(),
@@ -292,7 +292,7 @@ const HomeScreen = () => {
         fetchProducts();
         return;
       }
-      const url = `http://192.168.1.170:8080/api/v1/product/category/${categoryId}/1`
+      const url = `http://172.16.1.132:8080/api/v1/product/category/${categoryId}/1`
 
       const response = await axios.get(url);
 
@@ -316,7 +316,7 @@ const HomeScreen = () => {
 
   const fetchLast10Products = async () => {
     try {
-      const response = await axios.get("http://192.168.1.170:8080/api/v1/product/last-10");
+      const response = await axios.get("http://172.16.1.132:8080/api/v1/product/last-10");
       const products = response.data ? [].concat(response.data) : [];
       setLastProducts(products);
     } catch (error) {

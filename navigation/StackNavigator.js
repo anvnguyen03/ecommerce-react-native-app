@@ -12,6 +12,15 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Entypo } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
+import ProductInfoScreen from "../screens/ProductInfoScreen";
+import AddAddressScreen from "../screens/AddAddressScreen";
+import AddressScreen from "../screens/AddressScreen";
+import CartScreen from "../screens/CartScreen";
+import ProfileScreen from "../screens/ProfileScreen";
+import AccountScreen from "../screens/AccountScreen";
+import ChangeEmailScreen from "../screens/ChangeEmailScreen";
+import ConfirmationScreen from "../screens/ConfirmationScreen";
+import OrderScreen from "../screens/OrderScreen";
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -50,6 +59,21 @@ const StackNavigator = () => {
           }}
         />
 
+        <Tab.Screen
+          name="Cart"
+          component={CartScreen}
+          options={{
+            tabBarLabel: "Cart",
+            tabBarLabelStyle: { color: "#008E97" },
+            headerShown: false,
+            tabBarIcon: ({ focused }) =>
+              focused ? (
+                <AntDesign name="shoppingcart" size={24} color="#008E97" />
+              ) : (
+                <AntDesign name="shoppingcart" size={24} color="black" />
+              ),
+          }}
+        />
       </Tab.Navigator>
     );
   }
@@ -87,10 +111,32 @@ const StackNavigator = () => {
           options={{ headerShown: false }}
         />
         <Stack.Screen
+          name="Info"
+          component={ProductInfoScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
           name="Address"
           component={AddAddressScreen}
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name="Add"
+          component={AddressScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Confirm"
+          component={ConfirmationScreen}
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="Order"
+          component={OrderScreen}
+          options={{ headerShown: false }}
+        />
+
         <Stack.Screen
           name="Account"
           component={AccountScreen}
