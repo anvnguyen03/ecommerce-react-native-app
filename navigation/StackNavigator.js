@@ -77,8 +77,28 @@ const StackNavigator = () => {
           options={{ headerShown: false }}
         />
         <Stack.Screen
+          name="ResetPassword"
+          component={ResetPasswordScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
           name="Main"
           component={BottomTabs}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Address"
+          component={AddAddressScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Account"
+          component={AccountScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ChangeEmailScreen"
+          component={ChangeEmailScreen}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
