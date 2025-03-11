@@ -4,6 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { UserType } from "../UserContext";
+import { BASE_URL } from "@env"
 
 const AccountScreen = () => {
     const { userId, token } = useContext(UserType);
@@ -19,7 +20,7 @@ const AccountScreen = () => {
 
             try {
                 const response = await axios.get(
-                    `http://172.16.1.132:8080/api/v1/auth/user/${userId}`,
+                    `${BASE_URL}/auth/user/${userId}`,
                     {
                         headers: { Authorization: `Bearer ${token}` },
                     }

@@ -3,6 +3,7 @@ import { View, Text, TextInput, Pressable, Image, Alert, ActivityIndicator } fro
 import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 import { UserType } from "../context/UserContext";
+import { BASE_URL } from "@env"
 
 const EditAccountScreen = ({ route, navigation }) => {
     const { user } = route.params;
@@ -51,7 +52,7 @@ const EditAccountScreen = ({ route, navigation }) => {
 
     const sendOtp = async () => {
         try {
-            await axios.post("http://172.16.1.132:8080/api/v1/auth/send-otp", { email });
+            await axios.post(`${BASE_URL}/auth/send-otp`, { email });
             Alert.alert("OTP đã được gửi!", "Vui lòng kiểm tra email của bạn.");
         } catch (error) {
             Alert.alert("Lỗi", "Không thể gửi OTP.");
@@ -67,7 +68,7 @@ const EditAccountScreen = ({ route, navigation }) => {
         setLoading(true);
         try {
             await axios.put(
-                `http://172.16.1.132:8080/api/v1/auth/update-user/${userId}`,
+                `${BASE_URL}/auth/update-user/${userId}`,
                 { fullname, email, phone, avatar },
                 { headers: { Authorization: `Bearer ${token}` } }
             );

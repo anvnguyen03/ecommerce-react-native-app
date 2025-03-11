@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   TextInput,
   Alert,
+  TouchableHighlight,
 } from "react-native";
 import React, { useState } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -15,11 +16,15 @@ import { AntDesign } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
+import { BASE_URL } from "@env"
 
 const RegisterScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [nameFocused, setNameFocused] = useState(false);
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
   const navigation = useNavigation();
   const handleRegister = () => {
     const user = {
@@ -31,7 +36,7 @@ const RegisterScreen = () => {
 
     // send a POST  request to the backend API to register the user
     axios
-      .post("http://172.16.1.132:8080/api/v1/auth/signup", user)
+      .post(`${BASE_URL}/auth/signup`, user)
       .then((response) => {
         console.log(response);
         Alert.alert("Registration successful", "Please verify your email with the OTP sent.");
@@ -47,13 +52,13 @@ const RegisterScreen = () => {
   };
   return (
     <SafeAreaView
-      style={{ flex: 1, backgroundColor: "white", alignItems: "center", marginTop: 50 }}
+      style={{ flex: 1, backgroundColor: "white", alignItems: "center" }}
     >
-      <View>
+      <View style={{ paddingTop: 70 }}>
         <Image
-          style={{ width: 150, height: 100 }}
+          style={{ width: 150, height: 150 }}
           source={{
-            uri: "https://assets.stickpng.com/thumbs/6160562276000b00045a7d97.png",
+            uri: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcREIs419BPvSM2Kc_uT6rwWr1RHkeGMxYDS-UL8phGOtk64wrekwAQZta4UReHnCeIyQTE&usqp=CAU",
           }}
         />
       </View>
@@ -62,112 +67,170 @@ const RegisterScreen = () => {
         <View style={{ alignItems: "center" }}>
           <Text
             style={{
-              fontSize: 17,
+              fontSize: 20,
               fontWeight: "bold",
-              marginTop: 12,
+              marginTop: 20,
               color: "#041E42",
             }}
           >
-            Register to your Account
+            Sign Up
           </Text>
         </View>
 
-        <View style={{ marginTop: 70 }}>
-          <View
-            style={{
+        {/* Trường Name */}
+      <View style={{ marginTop: 20 }}>
+        <View
+          style={[
+            {
               flexDirection: "row",
               alignItems: "center",
               gap: 5,
-              backgroundColor: "#D0D0D0",
-              paddingVertical: 5,
-              borderRadius: 5,
+              backgroundColor: "#F0F0F0",
+              paddingVertical: 8,
+              borderRadius: 8,
               marginTop: 30,
-            }}
-          >
-            <Ionicons
-              name="person"
-              size={24}
-              color="gray"
-              style={{ marginLeft: 8 }}
-            />
-            <TextInput
-              value={name}
-              onChangeText={(text) => setName(text)}
-              style={{
-                color: "gray",
-                marginVertical: 10,
-                width: 300,
-                fontSize: name ? 16 : 16,
-              }}
-              placeholder="enter your name"
-            />
-          </View>
-
-          <View
+              borderWidth: 1,
+              borderColor: name.length > 0 ? "#007FFF" : "transparent",
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.1,
+              shadowRadius: 2,
+              elevation: 2,
+              width: 300,
+            },
+            nameFocused && {
+              borderColor: "#007FFF",
+              backgroundColor: "#FFFFFF",
+              shadowOpacity: 0.2,
+              elevation: 3,
+            },
+          ]}
+        >
+          <Ionicons
+            name="person"
+            size={24}
+            color={nameFocused ? "#007FFF" : "gray"}
+            style={{ marginLeft: 12 }}
+          />
+          <TextInput
+            value={name}
+            onChangeText={(text) => setName(text)}
+            onFocus={() => setNameFocused(true)}
+            onBlur={() => setNameFocused(false)}
             style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 5,
-              backgroundColor: "#D0D0D0",
-              paddingVertical: 5,
-              borderRadius: 5,
-              marginTop: 30,
+              color: "#333333",
+              marginVertical: 10,
+              fontSize: 16,
+              flex: 1,
             }}
-          >
-            <MaterialIcons
-              style={{ marginLeft: 8 }}
-              name="email"
-              size={24}
-              color="gray"
-            />
-
-            <TextInput
-              value={email}
-              onChangeText={(text) => setEmail(text)}
-              style={{
-                color: "gray",
-                marginVertical: 10,
-                width: 300,
-                fontSize: password ? 16 : 16,
-              }}
-              placeholder="enter your Email"
-            />
-          </View>
+            placeholder="Enter your name"
+            placeholderTextColor="#999999"
+          />
         </View>
 
-        <View>
-          <View
-            style={{
+        {/* Trường Email */}
+        <View
+          style={[
+            {
               flexDirection: "row",
               alignItems: "center",
               gap: 5,
-              backgroundColor: "#D0D0D0",
-              paddingVertical: 5,
-              borderRadius: 5,
+              backgroundColor: "#F0F0F0",
+              paddingVertical: 8,
+              borderRadius: 8,
               marginTop: 30,
+              borderWidth: 1,
+              borderColor: email.length > 0 ? "#007FFF" : "transparent",
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.1,
+              shadowRadius: 2,
+              elevation: 2,
+              width: 300,
+            },
+            emailFocused && {
+              borderColor: "#007FFF",
+              backgroundColor: "#FFFFFF",
+              shadowOpacity: 0.2,
+              elevation: 3,
+            },
+          ]}
+        >
+          <MaterialIcons
+            name="email"
+            size={24}
+            color={emailFocused ? "#007FFF" : "gray"}
+            style={{ marginLeft: 12 }}
+          />
+          <TextInput
+            value={email}
+            onChangeText={(text) => setEmail(text)}
+            onFocus={() => setEmailFocused(true)}
+            onBlur={() => setEmailFocused(false)}
+            style={{
+              color: "#333333",
+              marginVertical: 10,
+              fontSize: 16,
+              flex: 1,
             }}
-          >
-            <AntDesign
-              name="lock1"
-              size={24}
-              color="gray"
-              style={{ marginLeft: 8 }}
-            />
-
-            <TextInput
-              value={password}
-              onChangeText={(text) => setPassword(text)}
-              secureTextEntry={true}
-              style={{
-                color: "gray",
-                marginVertical: 10,
-                width: 300,
-                fontSize: email ? 16 : 16,
-              }}
-              placeholder="enter your Password"
-            />
-          </View>
+            placeholder="Enter your Email"
+            placeholderTextColor="#999999"
+          />
         </View>
+      </View>
+
+      {/* Trường Password */}
+      <View>
+        <View
+          style={[
+            {
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 5,
+              backgroundColor: "#F0F0F0",
+              paddingVertical: 8,
+              borderRadius: 8,
+              marginTop: 30,
+              borderWidth: 1,
+              borderColor: password.length > 0 ? "#007FFF" : "transparent",
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.1,
+              shadowRadius: 2,
+              elevation: 2,
+              width: 300,
+            },
+            passwordFocused && {
+              borderColor: "#007FFF",
+              backgroundColor: "#FFFFFF",
+              shadowOpacity: 0.2,
+              elevation: 3,
+            },
+          ]}
+        >
+          <AntDesign
+            name="lock1"
+            size={24}
+            color={passwordFocused ? "#007FFF" : "gray"}
+            style={{ marginLeft: 12 }}
+          />
+          <TextInput
+            value={password}
+            onChangeText={(text) => setPassword(text)}
+            secureTextEntry={true}
+            onFocus={() => setPasswordFocused(true)}
+            onBlur={() => setPasswordFocused(false)}
+            style={{
+              color: "#333333",
+              marginVertical: 10,
+              fontSize: 16,
+              flex: 1,
+            }}
+            placeholder="Enter your Password"
+            placeholderTextColor="#999999"
+          />
+        </View>
+      </View>
 
         <View
           style={{
@@ -177,46 +240,55 @@ const RegisterScreen = () => {
             justifyContent: "space-between",
           }}
         >
-          <Text>Keep me logged in</Text>
-
-          <Text style={{ color: "#007FFF", fontWeight: "500" }}>
-            Forgot Password
-          </Text>
         </View>
-
-        <View style={{ marginTop: 80 }} />
 
         <Pressable
           onPress={handleRegister}
-          style={{
+          style={({ pressed }) => ({
             width: 200,
-            backgroundColor: "#FEBE10",
+            marginTop: 20,
+            backgroundColor: pressed ? "#FFA500" : "#FEBE10",
             borderRadius: 6,
             marginLeft: "auto",
             marginRight: "auto",
             padding: 15,
-          }}
+            transform: pressed ? [{ scale: 0.95 }] : [{ scale: 1 }],
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 4,
+            elevation: 5,
+          })}
         >
           <Text
             style={{
               textAlign: "center",
               color: "white",
-              fontSize: 16,
+              fontSize: 18,
               fontWeight: "bold",
+              textShadowColor: "rgba(0, 0, 0, 0.2)",
+              textShadowOffset: { width: 1, height: 1 },
+              textShadowRadius: 2,
             }}
           >
-            Register
+            Sign Up
           </Text>
         </Pressable>
 
-        <Pressable
-          onPress={() => navigation.goBack()}
-          style={{ marginTop: 15 }}
-        >
-          <Text style={{ textAlign: "center", color: "gray", fontSize: 16 }}>
-            Already have an account? Sign In
+        <View style={{ marginTop: 15, flexDirection: 'row', justifyContent: 'center' }}>
+          <Text style={{ color: "gray", fontSize: 16 }}>
+            Already have an account?{" "}
           </Text>
-        </Pressable>
+          <TouchableHighlight
+            underlayColor="#E0E0E0"
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={{ color: "#007FFF", fontSize: 16, fontWeight: "500" }}>
+              Log In
+            </Text>
+          </TouchableHighlight>
+        </View>
+        
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

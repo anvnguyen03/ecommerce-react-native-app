@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TextInput, Alert, Pressable, SafeAreaView } from "react-native";
 import axios from "axios";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { BASE_URL } from "@env"
 
 const ResetPasswordScreen = () => {
     const [otp, setOtp] = useState("");
@@ -12,7 +13,7 @@ const ResetPasswordScreen = () => {
 
     const handleResetPassword = () => {
         axios
-            .post("http://172.16.1.132:8080/api/v1/auth/reset-password", { email, otp, newPassword })
+            .post(`${BASE_URL}/auth/reset-password`, { email, otp, newPassword })
             .then((response) => {
                 Alert.alert("Success", "Your password has been reset.");
                 navigation.navigate("Login");

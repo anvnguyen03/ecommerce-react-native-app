@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TextInput, Alert, Pressable, SafeAreaView } from "react-native";
 import axios from "axios";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { BASE_URL } from "@env"
 
 const VerifyOTPScreen = () => {
     const [otp, setOtp] = useState("");
@@ -11,7 +12,7 @@ const VerifyOTPScreen = () => {
 
     const handleVerifyOTP = () => {
         axios
-            .post("http://172.16.1.132:8080/api/v1/auth/verify-otp", { email, otp })
+            .post(`${BASE_URL}/auth/verify-otp`, { email, otp })
             .then((response) => {
                 Alert.alert("Verification Successful", "Your account has been activated!");
                 navigation.navigate("Login");

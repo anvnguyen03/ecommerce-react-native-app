@@ -3,131 +3,37 @@ import {
   Text,
   View,
   SafeAreaView,
-  Platform,
   ScrollView,
   Pressable,
   TextInput,
   Image,
   FlatList,
   ActivityIndicator,
-  ImageBackground,
+  Dimensions,
+  TouchableOpacity,
 } from "react-native";
-import React, { useState, useEffect, useCallback, useContext } from "react";
-import { Ionicons } from "@expo/vector-icons";
+import React, { useState, useEffect, useCallback, useContext, useRef } from "react";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { Entypo } from "@expo/vector-icons";
 import { AntDesign, Feather } from "@expo/vector-icons";
-// import { SliderBox } from "react-native-image-slider-box";
-
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import banner1 from "../assets/banner_1.jpg";
+import banner2 from "../assets/banner_2.jpg";
+import banner3 from "../assets/banner_3.webp";
+import allicon from "../assets/all_icon.png"
 import axios from "axios";
 import ProductItem from "../components/ProductItem";
 import DropDownPicker from "react-native-dropdown-picker";
 import { useNavigation } from "@react-navigation/native";
 import { useSelector } from "react-redux";
-import { BottomModal, SlideAnimation, ModalContent } from "react-native-modals";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { UserType } from "../UserContext";
+import Carousel from "react-native-reanimated-carousel";
+import { BASE_URL } from "@env"
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 
 const HomeScreen = () => {
-  const list = [
-    {
-      id: "0",
-      image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT20SzyLWRYAjxLPL1wt6gwC0NkpvrzXBgtVQ&s",
-      name: "Lamp",
-    },
-    {
-      id: "1",
-      image:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJowdqpV6KE3spD6uSi9CaSdMDaCvXVlK2Kw&s",
-      name: "Chair",
-    },
-    {
-      id: "3",
-      image:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSP2Y5vWtKmWhi6t16aszdW4Ps79KqjpuZBig&s",
-      name: "Wardrobe",
-    },
-    {
-      id: "4",
-      image:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2n1L73Y1urchVrfcGMgbCM7B31q5WL0AhxQ&s",
-      name: "Bed",
-    },
-    {
-      id: "5",
-      image:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRN8duC_vuln_SkMl2rnxaZ0dhFOLS9j6OLNA&s",
-      name: "Carpet",
-    },
-    {
-      id: "6",
-      image: "https://m.media-amazon.com/images/I/71hg3l7PkHL.jpg",
-      name: "Food Trolley",
-    },
-  ];
-
-  const offers = [
-    {
-      id: "0",
-      title:
-        "Oppo Enco Air3 Pro True Wireless in Ear Earbuds with Industry First Composite Bamboo Fiber, 49dB ANC, 30H Playtime, 47ms Ultra Low Latency,Fast Charge,BT 5.3 (Green)",
-      offer: "72% off",
-      oldPrice: 7500,
-      price: 4500,
-      image:
-        "https://m.media-amazon.com/images/I/61a2y1FCAJL._AC_UL640_FMwebp_QL65_.jpg",
-      carouselImages: [
-        "https://m.media-amazon.com/images/I/61a2y1FCAJL._SX679_.jpg",
-        "https://m.media-amazon.com/images/I/71DOcYgHWFL._SX679_.jpg",
-        "https://m.media-amazon.com/images/I/71LhLZGHrlL._SX679_.jpg",
-        "https://m.media-amazon.com/images/I/61Rgefy4ndL._SX679_.jpg",
-      ],
-      color: "Green",
-      size: "Normal",
-    },
-    {
-      id: "1",
-      title:
-        "Fastrack Limitless FS1 Pro Smart Watch|1.96 Super AMOLED Arched Display with 410x502 Pixel Resolution|SingleSync BT Calling|NitroFast Charging|110+ Sports Modes|200+ Watchfaces|Upto 7 Days Battery",
-      offer: "40%",
-      oldPrice: 7955,
-      price: 3495,
-      image: "https://m.media-amazon.com/images/I/41mQKmbkVWL._AC_SY400_.jpg",
-      carouselImages: [
-        "https://m.media-amazon.com/images/I/71h2K2OQSIL._SX679_.jpg",
-        "https://m.media-amazon.com/images/I/71BlkyWYupL._SX679_.jpg",
-        "https://m.media-amazon.com/images/I/71c1tSIZxhL._SX679_.jpg",
-      ],
-      color: "black",
-      size: "Normal",
-    },
-    {
-      id: "2",
-      title: "Aishwariya System On Ear Wireless On Ear Bluetooth Headphones",
-      offer: "40%",
-      oldPrice: 7955,
-      price: 3495,
-      image: "https://m.media-amazon.com/images/I/41t7Wa+kxPL._AC_SY400_.jpg",
-      carouselImages: ["https://m.media-amazon.com/images/I/41t7Wa+kxPL.jpg"],
-      color: "black",
-      size: "Normal",
-    },
-    {
-      id: "3",
-      title:
-        "Fastrack Limitless FS1 Pro Smart Watch|1.96 Super AMOLED Arched Display with 410x502 Pixel Resolution|SingleSync BT Calling|NitroFast Charging|110+ Sports Modes|200+ Watchfaces|Upto 7 Days Battery",
-      offer: "40%",
-      oldPrice: 24999,
-      price: 19999,
-      image: "https://m.media-amazon.com/images/I/71k3gOik46L._AC_SY400_.jpg",
-      carouselImages: [
-        "https://m.media-amazon.com/images/I/41bLD50sZSL._SX300_SY300_QL70_FMwebp_.jpg",
-        "https://m.media-amazon.com/images/I/616pTr2KJEL._SX679_.jpg",
-        "https://m.media-amazon.com/images/I/71wSGO0CwQL._SX679_.jpg",
-      ],
-      color: "Norway Blue",
-      size: "8GB RAM, 128GB Storage",
-    },
-  ];
+  const { width: screenWidth } = Dimensions.get('window');
 
   const sampleAddresses = [
     {
@@ -156,19 +62,13 @@ const HomeScreen = () => {
   const navigation = useNavigation();
 
   const [products, setProducts] = useState([]); // Danh sách sản phẩm đang hiển thị
+  const [lastProducts, setLastProducts] = useState([]);
   const [page, setPage] = useState(1); // Trang hiện tại
-  const [loading, setLoading] = useState(false); // Trạng thái tải dữ liệu
+  const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [isSorted, setIsSorted] = useState(false);
-  const [isCategory, setIsCategory] = useState(false);
-
-
   const [addresses, setAddresses] = useState([]);
-
-  const [open, setOpen] = useState(false);
-  const [items, setItems] = useState([{ label: "All", value: "all" }]);
-  const [category, setCategory] = useState("all");
-
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [openSort, setOpenSort] = useState(false);
   const [sortValue, setSortValue] = useState(null);
   const [sortOptions, setSortOptions] = useState([
@@ -184,21 +84,22 @@ const HomeScreen = () => {
     },
   ]);
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [hasMoreProducts, setHasMoreProducts] = useState(true);
+  const scrollViewRef = useRef(null);
+  const [activeSlide, setActiveSlide] = useState(0);
   const { userId, setUserId, token, setToken, refreshToken, setRefreshToken } = useContext(UserType);
   const [selectedAddress, setSelectedAdress] = useState("");
 
-  const fetchProducts = async () => {
+  // fetch all products
+  const fetchProducts = useCallback(async (currentPage) => {
     if (loading || !hasMore) return;
     setLoading(true);
-    setIsSorted(true);
 
     try {
-      const response = await axios.get(`http://172.16.1.132:8080/api/v1/product/getall/${page}`);
+      const response = await axios.get(`${BASE_URL}/product/getall/${currentPage}`);
 
-      // Kiểm tra response.data có dữ liệu hay không trước khi chuyển thành mảng
-      const newProducts = response.data.products
-        ? [].concat(response.data.products) // Đảm bảo chuyển thành mảng
-        : [];
+      const newProducts = response.data.products || []
 
       if (newProducts.length === 0) {
         setHasMore(false); // Hết dữ liệu
@@ -211,61 +112,63 @@ const HomeScreen = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, loading, hasMore]);
 
-  const fetchProductSort = async (sortValue) => {
-    if (!sortValue) return; // Nếu chưa chọn giá trị sort thì không gọi API
-    setLoading(true);
-    setProducts([])
-    setIsCategory(true)
-    const order = sortValue === "price_high" ? "desc" : "asc";
+  // Fetch product by category
+  const fetchProductsByCategory = useCallback(async (categoryId, currentPage) => {
+    if (loading || !hasMore) return;
+    setLoading(true)
 
     try {
+      const url = `${BASE_URL}/product/category/${categoryId}/${currentPage}`
+      const response = await axios.get(url);
+      const newProducts = response.data.products || [];
+      if (newProducts.length === 0) {
+        setHasMore(false);
+      } else {
+        setProducts((prev) => (currentPage === 1 ? newProducts : [...prev, ...newProducts]));
+        setPage((prev) => prev + 1);
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy sản phẩm theo danh mục:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, loading, hasMore, fetchProducts]);
+
+  // Fetch sorted products
+  const fetchProductSort = useCallback(async (value) => {
+    if (!value) return; // Nếu chưa chọn giá trị sort thì không gọi API
+    setLoading(true);
+    setProducts([]);
+    setPage(1);
+    setHasMore(false);
+
+    const order = value === "price_high" ? "desc" : "asc";
+    try {
       const response = await axios.get(
-        `http://172.16.1.132:8080/api/v1/product/sort/${order}`,
+        `${BASE_URL}/product/sort/${order}`,
         {
-          headers: { Authorization: `Bearer ${token}` }, // Thêm token nếu cần xác thực
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      // Kiểm tra response.data có dữ liệu không trước khi chuyển thành mảng
-      const sortedProducts = response.data
-        ? [].concat(response.data)
-        : [];
-
+      const sortedProducts = response.data || []
       setProducts(sortedProducts);
     } catch (error) {
       console.error("Lỗi khi lấy sản phẩm theo sort:", error);
     } finally {
       setLoading(false);
     }
-  };
+  });
 
-  useEffect(() => {
-    if (!isSorted) {
-      fetchProducts();
-    }
-
-  }, [isSorted]);
-
-  useEffect(() => {
-    if (sortValue) {
-      fetchProductSort(sortValue);
-    }
-  }, [sortValue]);
-
-
-  //    Category
+  // Fetch Categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get("http://172.16.1.132:8080/api/v1/category/getall");
-        const categoryData = response.data.map((cat) => ({
-          label: cat.name,
-          value: cat.id.toString(),
-        }));
-
-        setItems([{ label: "All", value: "all" }, ...categoryData]);
+        const response = await axios.get(`${BASE_URL}/category/getall`);
+        const allCategories = response.data || [];
+        setCategories(allCategories);
       } catch (error) {
         console.error("❌ Lỗi khi lấy danh mục:", error);
       }
@@ -274,83 +177,55 @@ const HomeScreen = () => {
     fetchCategories();
   }, []);
 
-  const onDropdownOpen = useCallback(() => {
-    setOpen(true);
-  }, []);
-
-
-  // Fetch product by category
-  const fetchProductsByCategory = async (categoryId) => {
-
-    setProducts([]);
-    setPage(1);
-
-    try {
-      if (categoryId === 'all') {
-        setLoading(false)
-        setHasMore(true)
-        fetchProducts();
-        return;
+  // Fetch last 10 products
+  useEffect(() => {
+    const fetchLast10Products = async () => {
+      try {
+        const response = await axios.get(`${BASE_URL}/product/last-10`);
+        const products = response.data || [];
+        setLastProducts(products);
+      } catch (error) {
+        console.error("Lỗi khi lấy 10 sản phẩm mới nhất:", error);
       }
-      const url = `http://172.16.1.132:8080/api/v1/product/category/${categoryId}/1`
-
-      const response = await axios.get(url);
-
-      const newProducts = response.data.products || [];
-
-
-
-      setProducts(newProducts);
-    } catch (error) {
-      console.error("Lỗi khi lấy sản phẩm theo danh mục:", error);
-    }
-  };
-
-  useEffect(() => {
-    if (!isCategory) return
-    fetchProductsByCategory(category);
-  }, [category]);
-
-
-  const [lastProducts, setLastProducts] = useState([]);
-
-  const fetchLast10Products = async () => {
-    try {
-      const response = await axios.get("http://172.16.1.132:8080/api/v1/product/last-10");
-      const products = response.data ? [].concat(response.data) : [];
-      setLastProducts(products);
-    } catch (error) {
-      console.error("Lỗi khi lấy 10 sản phẩm mới nhất:", error);
-    }
-  };
-
-  // Gọi API khi component mount
-  useEffect(() => {
+    };
     fetchLast10Products();
   }, []);
 
-
+  useEffect(() => {
+    console.log("useEffect triggered with selectedCategory:", selectedCategory, "page:", page);
+    if (sortValue) {
+      fetchProductSort(sortValue);
+    } else if (selectedCategory === "All") {
+      fetchProducts(1);
+    } else {
+      fetchProductsByCategory(selectedCategory, 1);
+    }
+  }, [selectedCategory, sortValue]);
 
   const cart = useSelector((state) => state.cart.cart);
   const [modalVisible, setModalVisible] = useState(false);
+
+  // Fetch Address
   useEffect(() => {
+    const fetchAddresses = async () => {
+      try {
+        // const response = await axios.get(
+        //   `http://localhost:8000/addresses/${userId}`
+        // );
+        // const { addresses } = response.data;
+
+        setAddresses(sampleAddresses);
+      } catch (error) {
+        console.log("error", error);
+      }
+    };
+
     if (userId) {
       fetchAddresses();
     }
   }, [userId, modalVisible]);
-  const fetchAddresses = async () => {
-    try {
-      // const response = await axios.get(
-      //   `http://localhost:8000/addresses/${userId}`
-      // );
-      // const { addresses } = response.data;
 
-      setAddresses(sampleAddresses);
-    } catch (error) {
-      console.log("error", error);
-    }
-  };
-
+  // Fetch current user
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -369,11 +244,60 @@ const HomeScreen = () => {
     fetchUser();
   }, []);
 
+  const banners = [
+    {
+      id: 1,
+      image: banner1,
+      title: '50-40% OFF',
+      subtitle: 'New in splendid! All colours.',
+      buttonText: 'Shop Now →'
+    },
+    {
+      id: 2,
+      image: banner2,
+      title: 'Exclusive Collection',
+      subtitle: 'Fresh Summer Sale!',
+      buttonText: 'Explore →'
+    },
+    {
+      id: 3,
+      image: banner3,
+      title: '',
+      subtitle: '',
+      buttonText: 'Discover →'
+    }
+  ];
+
+  const renderBannerItem = ({ item }) => {
+    return (
+      <View style={{ position: "relative", overflow: "hidden", borderRadius: 12 }}>
+        <Image source={item.image} style={{ width: '100%', height: '100%', borderRadius: 12 }} />
+        <View style={{ position: 'absolute', top: 0, left: 0, padding: 16, width: '100%', height: '100%', justifyContent: "center" }}>
+          <Text style={{ fontSize: 22, fontWeight: 'bold', marginBottom: 4 }}>{item.title}</Text>
+          <Text style={{ fontSize: 16, marginBottom: 12 }}>{item.subtitle}</Text>
+          <TouchableOpacity style={{ backgroundColor: '#FFFFFF', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, alignSelf: "flex-start" }}>
+            <Text style={{ fontSize: 14, fontWeight: '500', color: '#333' }}>{item.buttonText}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  const handleSelectCategory = async (categoryId) => {
+    setSortValue(null);
+    setProducts([]);
+    setHasMore(true)
+    setPage(1);
+    setSelectedCategory(categoryId);
+  };
+
   const renderHeader = () => (
-    <View>
+    <SafeAreaView>
+
+      {/* Header with Search and Avatar */}
       <View
         style={{
-          backgroundColor: "#878595",
+          backgroundColor: "#FEBE10",
           padding: 10,
           flexDirection: "row",
           alignItems: "center",
@@ -402,175 +326,225 @@ const HomeScreen = () => {
           <TextInput placeholder="Search Funiture.ute" />
         </Pressable>
 
-        <Feather name="mic" size={24} color="black" />
-      </View>
-      {/* <Pressable
-            onPress={() => setModalVisible(!modalVisible)}
+        <Pressable onPress={() => navigation.navigate("Profile")}>
+          <Image
+            source={{ uri: "https://img.freepik.com/premium-vector/avatar-profile-vector-illustrations-website-social-networks-user-profile-icon_495897-224.jpg" }}
             style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 5,
-              padding: 10,
-              backgroundColor: "#AFEEEE",
+              width: 40,
+              height: 40,
+              borderRadius: 50,
+              // marginBottom: 25,
             }}
-          >
-            <Ionicons name="location-outline" size={24} color="black" />
+          />
+        </Pressable>
+      </View>
 
-            <Pressable>
-              {selectedAddress ? (
-                <Text>
-                  Deliver to {selectedAddress?.name} - {selectedAddress?.street}
-                </Text>
-              ) : (
-                <Text style={{ fontSize: 13, fontWeight: "500" }}>
-                  Add a Address
-                </Text>
-              )}
-            </Pressable>
+      <View style={{ marginVertical: 15, alignItems: "center" }}>
+        <Carousel
+          loop
+          width={screenWidth - 32}
+          height={180}
+          autoPlay={true}
+          data={banners}
+          scrollAnimationDuration={1000}
+          autoPlayInterval={3000}
+          renderItem={renderBannerItem}
+          onSnapToItem={(index) => setActiveSlide(index)}
+        />
+      </View>
 
-            <Ionicons name="keyboard-arrow-down" size={24} color="black" />
-          </Pressable> */}
+      {/* All Featured */}
+      <View style={{ flexDirection: 'row', alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, marginVertical: 12 }}>
+        <Text style={{ fontSize: 18, fontWeight: '500', color: "#333 " }}>All Featured</Text>
+        {/* <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity style={{ flexDirection: "row", alignItems: 'center', marginRight: 12, backgroundColor: "#FFFFFF", borderRadius: 6, padding: 4 }}>
+            <Text style={{ fontSize: 18, marginRight: 4, color: '#333' }}>Sort</Text>
+            <FontAwesome name="sort" size={16} color="black" />
+          </TouchableOpacity>
+        </View> */}
+      </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {list.map((item, index) => (
-          <Pressable
-            key={index}
+        {/* All category button */}
+        <Pressable
+          style={{
+            margin: 10,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          onPress={() => handleSelectCategory("All")}
+        >
+          <View
             style={{
-              margin: 10,
-              justifyContent: "center",
-              alignItems: "center",
+              borderWidth: selectedCategory === "All" ? 2 : 0,
+              borderColor: selectedCategory === "All" ? "#FEBE10" : "transparent",
+              borderRadius: 27, // Thêm một chút để chứa cả viền và hình ảnh
+              padding: 2,
             }}
           >
             <Image
               style={{
                 width: 50,
                 height: 50,
-                borderRadius: 25, // Bán kính = 1/2 chiều rộng/chiều cao để tạo hình tròn
-                resizeMode: "cover", // Để ảnh lấp đầy hình tròn mà không bị méo
-                overflow: "hidden", // Đảm bảo ảnh không tràn ra ngoài
+                borderRadius: 25,
+                resizeMode: "cover",
+                overflow: "hidden",
               }}
-              source={{ uri: item.image }}
+              source={allicon}
             />
+          </View>
 
-            <Text
-              style={{
-                textAlign: "center",
-                fontSize: 12,
-                fontWeight: "500",
-                marginTop: 5,
-              }}
-            >
-              {item?.name}
-            </Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-
-      {/* <SliderBox
-            images={images}
-            autoPlay
-            circleLoop
-            dotColor={"#13274F"}
-            inactiveDotColor="#90A4AE"
-            ImageComponentStyle={{ width: "100%" }}
-          /> */}
-
-      {/* Top deal of the week */}
-      {/* <Carousel
-            loop
-            autoPlay
-            data={images}
-            width={width_image.width}
-            height={200}
-            renderItem={({ item }) => (
-              <Image source={{ uri: item }} style={{ width: "100%", height: 200 }} />
-            )}
-          />
-
-          <Text style={{ padding: 10, fontSize: 18, fontWeight: "bold" }}>
-            Trending Deals of the week
-          </Text>
-
-          <View
+          <Text
             style={{
-              flexDirection: "row",
-              alignItems: "center",
-              flexWrap: "wrap",
+              textAlign: "center",
+              fontSize: 12,
+              fontWeight: selectedCategory === "All" ? "700" : "500",
+              marginTop: 5,
+              color: selectedCategory === "All" ? "#007BFF" : "black",
             }}
           >
-            {deals.map((item, index) => (
-              <Pressable
-                key={index}
-                onPress={() =>
-                  navigation.navigate("Info", {
-                    id: item.id,
-                    title: item.title,
-                    price: item?.price,
-                    carouselImages: item.carouselImages,
-                    color: item?.color,
-                    size: item?.size,
-                    oldPrice: item?.oldPrice,
-                    item: item,
-                  })
-                }
+            All
+          </Text>
+        </Pressable>
+
+        {categories.map((item) => {
+          const isSelected = item.id === selectedCategory;
+          return (
+            <Pressable
+              key={`category${item.id}`}
+              style={{
+                margin: 10,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+              onPress={() => handleSelectCategory(item.id)}
+            >
+              <View
                 style={{
-                  marginVertical: 10,
-                  flexDirection: "row",
-                  alignItems: "center",
+                  borderWidth: isSelected ? 2 : 0,
+                  borderColor: isSelected ? "#FEBE10" : "transparent",
+                  borderRadius: 27, // Thêm một chút để chứa cả viền và hình ảnh
+                  padding: 2,
                 }}
               >
                 <Image
-                  style={{ width: 180, height: 180, resizeMode: "contain" }}
-                  source={{ uri: item?.image }}
+                  style={{
+                    width: 50,
+                    height: 50,
+                    borderRadius: 25,
+                    resizeMode: "cover",
+                    overflow: "hidden",
+                  }}
+                  source={{ uri: item.image }}
                 />
-              </Pressable>
-            ))}
-          </View> */}
+              </View>
 
-      <View style={{ flexDirection: "row", justifyContent: "space-between", marginHorizontal: 10 }}>
+              <Text
+                style={{
+                  textAlign: "center",
+                  fontSize: 12,
+                  fontWeight: isSelected ? "700" : "500",
+                  marginTop: 5,
+                  color: isSelected ? "#007BFF" : "black",
+                }}
+              >
+                {item?.name}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
 
-        {/* Category list */}
-        <View
-          style={{
-            marginHorizontal: 10,
-            marginTop: 20,
-            width: "45%",
-            marginBottom: open ? 50 : 15,
-          }}
-        >
-          <Text style={{ fontSize: 13, marginBottom: 5, marginLeft: 5, fontWeight: "bold" }}>
-            Category
-          </Text>
-          <DropDownPicker
-            style={{
-              borderColor: "#B7B7B7",
-              height: 20,
-              marginBottom: open ? 50 : 15,
-            }}
-            open={open}
-            value={category}
-            items={items}
-            setOpen={setOpen}
-            setValue={(val) => {
-              setCategory(val)
-              setIsCategory(true)
-              // fetchProductsByCategory(category)
-            }}
-            setItems={setItems}
-            placeholder="choose category"
-            placeholderStyle={styles.placeholderStyles}
-            onOpen={onDropdownOpen}
-            zIndex={3000}
-            zIndexInverse={1000}
-            dropDownDirection="BOTTOM"
-            listMode="SCROLLVIEW"
-            maxHeight={250}
-          />
-        </View>
+      <Text
+        style={{
+          height: 1,
+          borderColor: "#D0D0D0",
+          borderWidth: 2,
+          marginTop: 15,
+        }}
+      />
 
-        {/* Sort */}
-        <View style={{ marginHorizontal: 10, marginTop: 20, width: "30%" }}>
-          <Text style={{ fontSize: 13, marginBottom: 5, marginLeft: 5, fontWeight: "bold" }}>
+      {/* 10 new products */}
+      <Text style={{ padding: 10, fontSize: 18, fontWeight: "bold" }}>
+        Top deals
+      </Text>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 10 }}>
+        {lastProducts.map((item, index) => {
+          const scale = useSharedValue(1); // Giá trị scale ban đầu
+
+          const animatedStyle = useAnimatedStyle(() => ({
+            transform: [{ scale: scale.value }],
+          }));
+
+          const onPressIn = () => {
+            scale.value = withSpring(1.10); // Phóng to 5% khi nhấn
+          };
+
+          const onPressOut = () => {
+            scale.value = withSpring(1); // Trở về kích thước ban đầu
+          };
+
+          return (
+            <TouchableOpacity
+              key={`lastproduct${item.id}`}
+              onPress={() =>
+                navigation.navigate("Info", {
+                  id: item.id,
+                  name: item.name,
+                  price: item.price,
+                  img1: item.img1,
+                  img2: item.img2,
+                  img3: item.img3,
+                  description: item.description,
+                  status: item.status,
+                  stock: item.stoke,
+                })
+              }
+              onPressIn={onPressIn}
+              onPressOut={onPressOut}
+              activeOpacity={0.6}
+              style={{ width: 150, marginVertical: 10, marginRight: 15, backgroundColor: "#e8e6e5", borderRadius: 25, alignItems: "center", justifyContent: "center", overflow: "hidden", elevation: 2 }}
+            >
+              <Animated.View style={[{ position: "relative", width: "100%", height: 150 }, animatedStyle]}>
+                <Image
+                  style={{ width: "100%", height: "100%", borderRadius: 25, resizeMode: "cover" }}
+                  source={{ uri: `data:image/jpeg;base64,${item?.img1}` }}
+                />
+                {/* Huy hiệu Top Seller */}
+                <View style={{ position: "absolute", top: 10, left: 10, backgroundColor: "#E31837", borderRadius: 12, paddingVertical: 4, paddingHorizontal: 8, }}>
+                  <Text style={{ color: "#FFF", fontSize: 12, fontWeight: 'bold' }}>#{index + 1}</Text>
+                </View>
+              </Animated.View>
+
+              {/* Thông tin sản phẩm */}
+              <View style={{ paddingVertical: 10, alignItems: 'center' }}>
+                <Text style={{ fontSize: 13, fontWeight: "600", color: "#333", marginBottom: 5, textAlign: "center", paddingHorizontal: 5 }} numberOfLines={1}>
+                  {item?.name}
+                </Text>
+                <Text style={{ fontSize: 14, fontWeight: "bold", color: "#E31837", marginBottom: 5 }}>
+                  {item?.price.toLocaleString("vi-VN")} đ
+                </Text>
+
+              </View>
+            </TouchableOpacity>
+          )
+        })}
+      </ScrollView>
+
+      <Text
+        style={{
+          height: 1,
+          borderColor: "#D0D0D0",
+          borderWidth: 2,
+          marginTop: 15,
+        }}
+      />
+
+      {/* Sort */}
+      <View style={{ flexDirection: "row", justifyContent: "flex-end", marginHorizontal: 10 }}>
+        <View style={{ flexDirection: "row", marginHorizontal: 30, marginTop: 20, width: "30%", gap: 5, alignItems: "center" }}>
+          <Text style={{ fontSize: 13, fontWeight: "bold" }}>
             Sort
           </Text>
           <DropDownPicker
@@ -579,164 +553,19 @@ const HomeScreen = () => {
             value={sortValue}
             items={sortOptions}
             setOpen={setOpenSort}
-            setValue={(val) => {
-              setSortValue(val); // Cập nhật giá trị sort
-              fetchProductSort(sortValue); // Gọi hàm sắp xếp sản phẩm
-            }}
+            setValue={setSortValue}
             placeholder="Sắp xếp"
             placeholderStyle={{ color: "#999" }}
-            dropDownDirection="BOTTOM"
+            dropDownDirection="TOP"
             listMode="SCROLLVIEW"
             maxHeight={250}
             showTickIcon={false}
           />
         </View>
-
       </View>
 
 
-
-      <Text
-        style={{
-          height: 1,
-          borderColor: "#D0D0D0",
-          borderWidth: 2,
-          marginTop: 15,
-        }}
-      />
-
-      <Text style={{ padding: 10, fontSize: 18, fontWeight: "bold" }}>
-        Today's Deals
-      </Text>
-
-      {/* Old 4 product */}
-      {/* <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {offers.map((item, index) => (
-          <Pressable
-            key={index}
-            onPress={() =>
-              navigation.navigate("Info", {
-                id: item.id,
-                title: item.title,
-                price: item?.price,
-                carouselImages: item.carouselImages,
-                color: item?.color,
-                size: item?.size,
-                oldPrice: item?.oldPrice,
-                item: item,
-              })
-            }
-            style={{
-              marginVertical: 10,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Image
-              style={{ width: 150, height: 150, resizeMode: "contain" }}
-              source={{ uri: item?.image }}
-            />
-
-            <View
-              style={{
-                backgroundColor: "#E31837",
-                paddingVertical: 5,
-                width: 130,
-                justifyContent: "center",
-                alignItems: "center",
-                marginTop: 10,
-                borderRadius: 4,
-              }}
-            >
-              <Text
-                style={{
-                  textAlign: "center",
-                  color: "white",
-                  fontSize: 13,
-                  fontWeight: "bold",
-                }}
-              >
-                Upto {item?.offer}
-              </Text>
-            </View>
-          </Pressable>
-        ))}
-      </ScrollView> */}
-
-      {/* 10 new products */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {lastProducts.map((item, index) => (
-          <Pressable
-            key={index}
-            onPress={() =>
-              navigation.navigate("Info", {
-                id: item.id,
-                name: item.name,
-                price: item.price,
-                img1: item.img1,
-                img2: item.img2,
-                img3: item.img3,
-                description: item.description,
-                status: item.status,
-                stock: item.stoke,
-              })
-            }
-            style={{
-              backgroundColor: "#e8e6e5",
-
-              marginVertical: 10,
-              alignItems: "center",
-              justifyContent: "center",
-              marginRight: 5,
-            }}
-          >
-            <Image
-              style={{
-                width: 150, height: 150, borderRadius: 25, // Bán kính = 1/2 chiều rộng/chiều cao để tạo hình tròn
-                resizeMode: "cover", // Để ảnh lấp đầy hình tròn mà không bị méo
-                overflow: "hidden",
-              }}
-              source={{ uri: `data:image/jpeg;base64,${item?.img1}` }}
-            />
-
-            <View
-              style={{
-                backgroundColor: "#E31837",
-                paddingVertical: 5,
-                width: 130,
-                justifyContent: "center",
-                alignItems: "center",
-                marginTop: 10,
-                borderRadius: 4,
-              }}
-            >
-              <Text
-                style={{
-                  textAlign: "center",
-                  color: "white",
-                  fontSize: 13,
-                  fontWeight: "bold",
-                }}
-              >
-                Upto {item?.offer}
-              </Text>
-            </View>
-          </Pressable>
-        ))}
-      </ScrollView>
-
-
-      <Text
-        style={{
-          height: 1,
-          borderColor: "#D0D0D0",
-          borderWidth: 2,
-          marginTop: 15,
-        }}
-      />
-
-
-    </View>
+    </SafeAreaView>
   );
   return (
 
@@ -744,15 +573,21 @@ const HomeScreen = () => {
       ListHeaderComponent={renderHeader}
       data={products}
       renderItem={({ item }) => (
-        <View style={{ flex: 1, margin: 5 }}>
+        <View key={`product${item.id}`} style={{ flex: 1, margin: 5 }}>
           <ProductItem item={item} />
         </View>
       )}
-      
+
       keyExtractor={(item) => item.id.toString()}
       numColumns={2} // Hiển thị 2 cột trên mỗi hàng
       columnWrapperStyle={{ justifyContent: "space-between" }} // Căn chỉnh khoảng cách giữa các cột
-      onEndReached={fetchProducts} // Khi cuộn hết danh sách, gọi API lấy thêm dữ liệu
+      onEndReached={() => {
+        if (selectedCategory === "All") {
+          fetchProducts(page);
+        } else {
+          fetchProductsByCategory(selectedCategory, page);
+        }
+      }} // Khi cuộn hết danh sách, gọi API lấy thêm dữ liệu
       onEndReachedThreshold={0.5} // Load thêm khi còn 50% danh sách
       ListFooterComponent={
         loading ? <ActivityIndicator size="large" color="blue" /> : null

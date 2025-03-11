@@ -3,6 +3,7 @@ import { View, Text, TextInput, Pressable, Alert, StyleSheet } from "react-nativ
 import axios from "axios";
 import { UserType } from "../UserContext";
 import { useNavigation } from "@react-navigation/native";
+import { BASE_URL } from "@env"
 
 const ChangeEmailScreen = () => {
     const { userId, token } = useContext(UserType);
@@ -21,7 +22,7 @@ const ChangeEmailScreen = () => {
 
         try {
             const response = await axios.post(
-                "http://172.16.1.132:8080/api/v1/user/change-email",
+                `${BASE_URL}/user/change-email`,
                 {
                     email: newEmail,
                     userId: userId
@@ -49,7 +50,7 @@ const ChangeEmailScreen = () => {
             console.log(userId, newEmail, otp)
 
             const response = await axios.post(
-                "http://172.16.1.132:8080/api/v1/user/verify-otp",
+                `${BASE_URL}/user/verify-otp`,
                 { userId, email: newEmail, otp },
                 { headers: { Authorization: `Bearer ${token}` } }
             );

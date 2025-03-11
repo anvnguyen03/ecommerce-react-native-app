@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TextInput, Alert, Pressable, SafeAreaView } from "react-native";
 import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
+import { BASE_URL } from "@env"
 
 const ForgotPasswordScreen = () => {
     const [email, setEmail] = useState("");
@@ -9,7 +10,7 @@ const ForgotPasswordScreen = () => {
 
     const handleForgotPassword = () => {
         axios
-            .post("http://172.16.1.132:8080/api/v1/auth/forget-password", { email })
+            .post(`${BASE_URL}/auth/forget-password`, { email })
             .then((response) => {
                 Alert.alert("OTP Sent", "Check your email for the OTP.");
                 navigation.navigate("ResetPassword", { email });

@@ -13,7 +13,7 @@ import axios from "axios";
 import { UserType } from "../UserContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import logo from "../assets/Ute2022New.png";
-
+import { BASE_URL } from "@env"
 
 const ProfileScreen = () => {
   const { userId, token } = useContext(UserType);
@@ -73,7 +73,7 @@ const ProfileScreen = () => {
 
       try {
         const response = await axios.get(
-          `http://172.16.1.132:8080/api/v1/user/order/${userId}`,
+          `${BASE_URL}/user/order/${userId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }

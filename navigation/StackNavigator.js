@@ -21,6 +21,7 @@ import AccountScreen from "../screens/AccountScreen";
 import ChangeEmailScreen from "../screens/ChangeEmailScreen";
 import ConfirmationScreen from "../screens/ConfirmationScreen";
 import OrderScreen from "../screens/OrderScreen";
+import SplashScreen from "../screens/SplashScreen";
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -33,28 +34,13 @@ const StackNavigator = () => {
           component={HomeScreen}
           options={{
             tabBarLabel: "Home",
-            tabBarLabelStyle: { color: "#008E97" },
+            tabBarLabelStyle: { color: "black" },
             headerShown: false,
             tabBarIcon: ({ focused }) =>
               focused ? (
-                <Entypo name="home" size={24} color="#008E97" />
+                <Entypo name="home" size={24} color="#FEBE10" />
               ) : (
                 <AntDesign name="home" size={24} color="black" />
-              ),
-          }}
-        />
-
-        <Tab.Screen
-          name="Profile"
-          component={ProfileScreen}
-          options={{
-            tabBarLabel: "Profile",
-            tabBarLabelStyle: { color: "#008E97" },
-            tabBarIcon: ({ focused }) =>
-              focused ? (
-                <Ionicons name="person" size={24} color="#008E97" />
-              ) : (
-                <Ionicons name="person-outline" size={24} color="black" />
               ),
           }}
         />
@@ -64,13 +50,28 @@ const StackNavigator = () => {
           component={CartScreen}
           options={{
             tabBarLabel: "Cart",
-            tabBarLabelStyle: { color: "#008E97" },
+            tabBarLabelStyle: { color: "black" },
             headerShown: false,
             tabBarIcon: ({ focused }) =>
               focused ? (
-                <AntDesign name="shoppingcart" size={24} color="#008E97" />
+                <AntDesign name="shoppingcart" size={24} color="#FEBE10" />
               ) : (
                 <AntDesign name="shoppingcart" size={24} color="black" />
+              ),
+          }}
+        />
+
+        <Tab.Screen
+          name="Profile"
+          component={ProfileScreen}
+          options={{
+            tabBarLabel: "Profile",
+            tabBarLabelStyle: { color: "black" },
+            tabBarIcon: ({ focused }) =>
+              focused ? (
+                <Ionicons name="person" size={24} color="#FEBE10" />
+              ) : (
+                <Ionicons name="person-outline" size={24} color="black" />
               ),
           }}
         />
@@ -80,6 +81,11 @@ const StackNavigator = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator>
+        <Stack.Screen
+          name="Splash"
+          component={SplashScreen}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen
           name="Login"
           component={LoginScreen}
