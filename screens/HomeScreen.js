@@ -32,6 +32,95 @@ import Carousel from "react-native-reanimated-carousel";
 import { BASE_URL } from "@env"
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 
+export const SearchBar = ({ onSearch, onClear, searchQuery }) => {
+  console.log("Search bar re-rendered")
+
+  const [inputValue, setInputValue] = useState("");
+
+  // Đồng bộ inputValue với searchQuery khi searchQuery thay đổi
+  useEffect(() => {
+    if (searchQuery) {
+      setInputValue(searchQuery);
+    }
+  }, [searchQuery]);
+
+  const handleSearch = () => {
+    onSearch(inputValue);
+  };
+
+  const handleClear = () => {
+    setInputValue("");
+    onClear();
+  };
+
+  return (
+    <View style={{
+      flexDirection: "row",
+      alignItems: "center",
+      marginHorizontal: 7,
+      backgroundColor: "white",
+      borderRadius: 3,
+      height: 38,
+      flex: 1,
+    }}>
+      <TouchableOpacity onPress={handleSearch} style={{ paddingLeft: 10, paddingRight: 5 }}>
+        <AntDesign name="search1" size={22} color="black" />
+      </TouchableOpacity>
+      <TextInput
+        placeholder="Search Furniture.ute"
+        value={inputValue}
+        onChangeText={(text) => setInputValue(text)}
+        style={{
+          flex: 1,
+          fontSize: 16,
+          paddingVertical: 0,
+        }}
+        autoCapitalize="none"
+        returnKeyType="search"
+        onSubmitEditing={handleSearch}
+      />
+      {inputValue ? (
+        <TouchableOpacity onPress={handleClear} style={{ paddingRight: 10 }}>
+          <Ionicons name="close-circle" size={20} color="#666" />
+        </TouchableOpacity>
+      ) : null}
+    </View>
+  );
+};
+
+const BannerCarousel = ({ banners, width }) => {
+  const [activeSlide, setActiveSlide] = useState(0);
+
+  const renderBannerItem = ({ item }) => (
+    <View style={{ position: "relative", overflow: "hidden", borderRadius: 12 }}>
+      <Image source={item.image} style={{ width: "100%", height: "100%", borderRadius: 12 }} />
+      <View style={{ position: "absolute", top: 0, left: 0, padding: 16, width: "100%", height: "100%", justifyContent: "center" }}>
+        <Text style={{ fontSize: 22, fontWeight: "bold", marginBottom: 4 }}>{item.title}</Text>
+        <Text style={{ fontSize: 16, marginBottom: 12 }}>{item.subtitle}</Text>
+        <TouchableOpacity style={{ backgroundColor: "#FFFFFF", paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, alignSelf: "flex-start" }}>
+          <Text style={{ fontSize: 14, fontWeight: "500", color: "#333" }}>{item.buttonText}</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  return (
+    <View style={{ marginVertical: 15, alignItems: "center"}}>
+      <Carousel
+        loop
+        width={width - 32}
+        height={180}
+        autoPlay={true}
+        data={banners}
+        scrollAnimationDuration={1000}
+        autoPlayInterval={3000}
+        renderItem={renderBannerItem}
+        onSnapToItem={(index) => setActiveSlide(index)}
+      />
+    </View>
+  );
+};
+
 const HomeScreen = () => {
   const { width: screenWidth } = Dimensions.get('window');
 
@@ -72,22 +161,10 @@ const HomeScreen = () => {
   const [openSort, setOpenSort] = useState(false);
   const [sortValue, setSortValue] = useState(null);
   const [sortOptions, setSortOptions] = useState([
-    {
-      label: "Giá tăng dần",
-      value: "price_low",
-      icon: () => <Ionicons name="arrow-up" size={20} color="black" />,
-    },
-    {
-      label: "Giá giảm dần",
-      value: "price_high",
-      icon: () => <Ionicons name="arrow-down" size={20} color="black" />,
-    },
+    { label: "Giá tăng dần", value: "price_low", icon: () => <Ionicons name="arrow-up" size={20} color="black" /> },
+    { label: "Giá giảm dần", value: "price_high", icon: () => <Ionicons name="arrow-down" size={20} color="black" /> }
   ]);
-
-  const [searchQuery, setSearchQuery] = useState('');
-  const [hasMoreProducts, setHasMoreProducts] = useState(true);
-  const scrollViewRef = useRef(null);
-  const [activeSlide, setActiveSlide] = useState(0);
+  const [searchQuery, setSearchQuery] = useState(""); // Từ khóa tìm kiếm chính thức
   const { userId, setUserId, token, setToken, refreshToken, setRefreshToken } = useContext(UserType);
   const [selectedAddress, setSelectedAdress] = useState("");
 
@@ -112,9 +189,9 @@ const HomeScreen = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, loading, hasMore]);
+  }, [loading, hasMore]);
 
-  // Fetch product by category
+  // Fetch product by category with lazy loading
   const fetchProductsByCategory = useCallback(async (categoryId, currentPage) => {
     if (loading || !hasMore) return;
     setLoading(true)
@@ -134,33 +211,51 @@ const HomeScreen = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, loading, hasMore, fetchProducts]);
+  }, [loading, hasMore, fetchProducts]);
 
-  // Fetch sorted products
-  const fetchProductSort = useCallback(async (value) => {
-    if (!value) return; // Nếu chưa chọn giá trị sort thì không gọi API
+  // Fetch search results with lazy loading
+  const fetchSearchResults = useCallback(async (query, currentPage) => {
+    if (loading || !hasMore || !query) return;
     setLoading(true);
-    setProducts([]);
-    setPage(1);
-    setHasMore(false);
 
-    const order = value === "price_high" ? "desc" : "asc";
     try {
-      const response = await axios.get(
-        `${BASE_URL}/product/sort/${order}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      const sortedProducts = response.data || []
-      setProducts(sortedProducts);
+      const url = `${BASE_URL}/product/search/${query}/${currentPage}`;
+      const response = await axios.get(url);
+      const newProducts = response.data.products || [];
+      if (newProducts.length === 0) {
+        setHasMore(false);
+      } else {
+        setProducts((prev) => (currentPage === 1 ? newProducts : [...prev, ...newProducts]));
+        setPage((prev) => prev + 1);
+      }
     } catch (error) {
-      console.error("Lỗi khi lấy sản phẩm theo sort:", error);
+      console.error("Lỗi khi tìm kiếm sản phẩm:", error);
     } finally {
       setLoading(false);
     }
-  });
+  }, [loading, hasMore]);
+
+  // Fetch sorted products
+  const fetchProductSort = useCallback((value) => {
+    if (!value) return; // Nếu chưa chọn giá trị sort thì không làm gì
+    setLoading(true);
+  
+    const currentProducts = [...products];
+  
+    const sortedProducts = currentProducts.sort((a, b) => {
+      if (value === "price_high") {
+        return b.price - a.price; // Giảm dần
+      } else {
+        return a.price - b.price; // Tăng dần
+      }
+    });
+  
+    setProducts(sortedProducts);
+    setPage(1);
+    setHasMore(false);
+  
+    setLoading(false);
+  }, [products]); // Dependency là products để hàm cập nhật khi products thay đổi
 
   // Fetch Categories
   useEffect(() => {
@@ -192,15 +287,20 @@ const HomeScreen = () => {
   }, []);
 
   useEffect(() => {
-    console.log("useEffect triggered with selectedCategory:", selectedCategory, "page:", page);
+    setProducts([]);
+    setPage(1);
+    setHasMore(true);
+
     if (sortValue) {
       fetchProductSort(sortValue);
+    } else if (searchQuery) {
+      fetchSearchResults(searchQuery, 1);
     } else if (selectedCategory === "All") {
       fetchProducts(1);
     } else {
       fetchProductsByCategory(selectedCategory, 1);
     }
-  }, [selectedCategory, sortValue]);
+  }, [searchQuery, selectedCategory, sortValue]);
 
   const cart = useSelector((state) => state.cart.cart);
   const [modalVisible, setModalVisible] = useState(false);
@@ -268,305 +368,290 @@ const HomeScreen = () => {
     }
   ];
 
-  const renderBannerItem = ({ item }) => {
-    return (
-      <View style={{ position: "relative", overflow: "hidden", borderRadius: 12 }}>
-        <Image source={item.image} style={{ width: '100%', height: '100%', borderRadius: 12 }} />
-        <View style={{ position: 'absolute', top: 0, left: 0, padding: 16, width: '100%', height: '100%', justifyContent: "center" }}>
-          <Text style={{ fontSize: 22, fontWeight: 'bold', marginBottom: 4 }}>{item.title}</Text>
-          <Text style={{ fontSize: 16, marginBottom: 12 }}>{item.subtitle}</Text>
-          <TouchableOpacity style={{ backgroundColor: '#FFFFFF', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, alignSelf: "flex-start" }}>
-            <Text style={{ fontSize: 14, fontWeight: '500', color: '#333' }}>{item.buttonText}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  };
-
   const handleSelectCategory = async (categoryId) => {
     setSortValue(null);
+    setSearchQuery("");
     setProducts([]);
     setHasMore(true)
-    setPage(1);
     setSelectedCategory(categoryId);
+    setPage(1);
   };
 
-  const renderHeader = () => (
-    <SafeAreaView>
+  const handleSearch = (value) => {
+    setSearchQuery(value);
+    setSelectedCategory("All"); // Reset category khi tìm kiếm
+    setSortValue(null);
+  };
 
-      {/* Header with Search and Avatar */}
-      <View
-        style={{
-          backgroundColor: "#FEBE10",
-          padding: 10,
-          flexDirection: "row",
-          alignItems: "center",
-          paddingTop: 35,
-          height: 100
-        }}
-      >
-        <Pressable
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    setSelectedCategory("All");
+    setSortValue(null);
+  };
+
+  const renderHeader = () => {
+    console.log("Header rendered")
+
+    return (
+      <SafeAreaView>
+        {/* Header with Search and Avatar */}
+        <View
           style={{
+            backgroundColor: "#FEBE10",
+            padding: 10,
             flexDirection: "row",
             alignItems: "center",
-            marginHorizontal: 7,
-            gap: 10,
-            backgroundColor: "white",
-            borderRadius: 3,
-            height: 38,
-            flex: 1,
+            paddingTop: 35,
+            height: 100
           }}
         >
-          <AntDesign
-            style={{ paddingLeft: 10 }}
-            name="search1"
-            size={22}
-            color="black"
+          <SearchBar onSearch={handleSearch} onClear={handleClearSearch} searchQuery={searchQuery} />
+
+          <Pressable onPress={() => navigation.navigate("Profile")}>
+            <Image
+              source={{ uri: "https://img.freepik.com/premium-vector/avatar-profile-vector-illustrations-website-social-networks-user-profile-icon_495897-224.jpg" }}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 50,
+                // marginBottom: 25,
+              }}
+            />
+          </Pressable>
+        </View>
+
+        {/* <View style={{ marginVertical: 15, alignItems: "center" }}>
+          <Carousel
+            loop
+            width={screenWidth - 32}
+            height={180}
+            autoPlay={true}
+            data={banners}
+            scrollAnimationDuration={1000}
+            autoPlayInterval={3000}
+            renderItem={renderBannerItem}
+            onSnapToItem={(index) => setActiveSlide(index)}
           />
-          <TextInput placeholder="Search Funiture.ute" />
-        </Pressable>
+        </View> */}
 
-        <Pressable onPress={() => navigation.navigate("Profile")}>
-          <Image
-            source={{ uri: "https://img.freepik.com/premium-vector/avatar-profile-vector-illustrations-website-social-networks-user-profile-icon_495897-224.jpg" }}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 50,
-              // marginBottom: 25,
-            }}
-          />
-        </Pressable>
-      </View>
+        <BannerCarousel banners={banners} width={screenWidth} />
 
-      <View style={{ marginVertical: 15, alignItems: "center" }}>
-        <Carousel
-          loop
-          width={screenWidth - 32}
-          height={180}
-          autoPlay={true}
-          data={banners}
-          scrollAnimationDuration={1000}
-          autoPlayInterval={3000}
-          renderItem={renderBannerItem}
-          onSnapToItem={(index) => setActiveSlide(index)}
-        />
-      </View>
-
-      {/* All Featured */}
-      <View style={{ flexDirection: 'row', alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, marginVertical: 12 }}>
-        <Text style={{ fontSize: 18, fontWeight: '500', color: "#333 " }}>All Featured</Text>
-        {/* <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        {/* All Featured */}
+        <View style={{ flexDirection: 'row', alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, marginVertical: 12 }}>
+          <Text style={{ fontSize: 18, fontWeight: '500', color: "#333 " }}>All Featured</Text>
+          {/* <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <TouchableOpacity style={{ flexDirection: "row", alignItems: 'center', marginRight: 12, backgroundColor: "#FFFFFF", borderRadius: 6, padding: 4 }}>
             <Text style={{ fontSize: 18, marginRight: 4, color: '#333' }}>Sort</Text>
             <FontAwesome name="sort" size={16} color="black" />
           </TouchableOpacity>
         </View> */}
-      </View>
+        </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {/* All category button */}
-        <Pressable
-          style={{
-            margin: 10,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-          onPress={() => handleSelectCategory("All")}
-        >
-          <View
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {/* All category button */}
+          <Pressable
             style={{
-              borderWidth: selectedCategory === "All" ? 2 : 0,
-              borderColor: selectedCategory === "All" ? "#FEBE10" : "transparent",
-              borderRadius: 27, // Thêm một chút để chứa cả viền và hình ảnh
-              padding: 2,
+              margin: 10,
+              justifyContent: "center",
+              alignItems: "center",
             }}
+            onPress={() => handleSelectCategory("All")}
           >
-            <Image
+            <View
               style={{
-                width: 50,
-                height: 50,
-                borderRadius: 25,
-                resizeMode: "cover",
-                overflow: "hidden",
+                borderWidth: selectedCategory === "All" ? 2 : 0,
+                borderColor: selectedCategory === "All" ? "#FEBE10" : "transparent",
+                borderRadius: 27, // Thêm một chút để chứa cả viền và hình ảnh
+                padding: 2,
               }}
-              source={allicon}
-            />
-          </View>
-
-          <Text
-            style={{
-              textAlign: "center",
-              fontSize: 12,
-              fontWeight: selectedCategory === "All" ? "700" : "500",
-              marginTop: 5,
-              color: selectedCategory === "All" ? "#007BFF" : "black",
-            }}
-          >
-            All
-          </Text>
-        </Pressable>
-
-        {categories.map((item) => {
-          const isSelected = item.id === selectedCategory;
-          return (
-            <Pressable
-              key={`category${item.id}`}
-              style={{
-                margin: 10,
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-              onPress={() => handleSelectCategory(item.id)}
             >
-              <View
+              <Image
                 style={{
-                  borderWidth: isSelected ? 2 : 0,
-                  borderColor: isSelected ? "#FEBE10" : "transparent",
-                  borderRadius: 27, // Thêm một chút để chứa cả viền và hình ảnh
-                  padding: 2,
+                  width: 50,
+                  height: 50,
+                  borderRadius: 25,
+                  resizeMode: "cover",
+                  overflow: "hidden",
                 }}
+                source={allicon}
+              />
+            </View>
+
+            <Text
+              style={{
+                textAlign: "center",
+                fontSize: 12,
+                fontWeight: selectedCategory === "All" ? "700" : "500",
+                marginTop: 5,
+                color: selectedCategory === "All" ? "#007BFF" : "black",
+              }}
+            >
+              All
+            </Text>
+          </Pressable>
+
+          {categories.map((item) => {
+            const isSelected = item.id === selectedCategory;
+            return (
+              <Pressable
+                key={`category${item.id}`}
+                style={{
+                  margin: 10,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+                onPress={() => handleSelectCategory(item.id)}
               >
-                <Image
+                <View
                   style={{
-                    width: 50,
-                    height: 50,
-                    borderRadius: 25,
-                    resizeMode: "cover",
-                    overflow: "hidden",
+                    borderWidth: isSelected ? 2 : 0,
+                    borderColor: isSelected ? "#FEBE10" : "transparent",
+                    borderRadius: 27, // Thêm một chút để chứa cả viền và hình ảnh
+                    padding: 2,
                   }}
-                  source={{ uri: item.image }}
-                />
-              </View>
-
-              <Text
-                style={{
-                  textAlign: "center",
-                  fontSize: 12,
-                  fontWeight: isSelected ? "700" : "500",
-                  marginTop: 5,
-                  color: isSelected ? "#007BFF" : "black",
-                }}
-              >
-                {item?.name}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
-
-      <Text
-        style={{
-          height: 1,
-          borderColor: "#D0D0D0",
-          borderWidth: 2,
-          marginTop: 15,
-        }}
-      />
-
-      {/* 10 new products */}
-      <Text style={{ padding: 10, fontSize: 18, fontWeight: "bold" }}>
-        Top deals
-      </Text>
-
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 10 }}>
-        {lastProducts.map((item, index) => {
-          const scale = useSharedValue(1); // Giá trị scale ban đầu
-
-          const animatedStyle = useAnimatedStyle(() => ({
-            transform: [{ scale: scale.value }],
-          }));
-
-          const onPressIn = () => {
-            scale.value = withSpring(1.10); // Phóng to 5% khi nhấn
-          };
-
-          const onPressOut = () => {
-            scale.value = withSpring(1); // Trở về kích thước ban đầu
-          };
-
-          return (
-            <TouchableOpacity
-              key={`lastproduct${item.id}`}
-              onPress={() =>
-                navigation.navigate("Info", {
-                  id: item.id,
-                  name: item.name,
-                  price: item.price,
-                  img1: item.img1,
-                  img2: item.img2,
-                  img3: item.img3,
-                  description: item.description,
-                  status: item.status,
-                  stock: item.stoke,
-                })
-              }
-              onPressIn={onPressIn}
-              onPressOut={onPressOut}
-              activeOpacity={0.6}
-              style={{ width: 150, marginVertical: 10, marginRight: 15, backgroundColor: "#e8e6e5", borderRadius: 25, alignItems: "center", justifyContent: "center", overflow: "hidden", elevation: 2 }}
-            >
-              <Animated.View style={[{ position: "relative", width: "100%", height: 150 }, animatedStyle]}>
-                <Image
-                  style={{ width: "100%", height: "100%", borderRadius: 25, resizeMode: "cover" }}
-                  source={{ uri: `data:image/jpeg;base64,${item?.img1}` }}
-                />
-                {/* Huy hiệu Top Seller */}
-                <View style={{ position: "absolute", top: 10, left: 10, backgroundColor: "#E31837", borderRadius: 12, paddingVertical: 4, paddingHorizontal: 8, }}>
-                  <Text style={{ color: "#FFF", fontSize: 12, fontWeight: 'bold' }}>#{index + 1}</Text>
+                >
+                  <Image
+                    style={{
+                      width: 50,
+                      height: 50,
+                      borderRadius: 25,
+                      resizeMode: "cover",
+                      overflow: "hidden",
+                    }}
+                    source={{ uri: item.image }}
+                  />
                 </View>
-              </Animated.View>
 
-              {/* Thông tin sản phẩm */}
-              <View style={{ paddingVertical: 10, alignItems: 'center' }}>
-                <Text style={{ fontSize: 13, fontWeight: "600", color: "#333", marginBottom: 5, textAlign: "center", paddingHorizontal: 5 }} numberOfLines={1}>
+                <Text
+                  style={{
+                    textAlign: "center",
+                    fontSize: 12,
+                    fontWeight: isSelected ? "700" : "500",
+                    marginTop: 5,
+                    color: isSelected ? "#007BFF" : "black",
+                  }}
+                >
                   {item?.name}
                 </Text>
-                <Text style={{ fontSize: 14, fontWeight: "bold", color: "#E31837", marginBottom: 5 }}>
-                  {item?.price.toLocaleString("vi-VN")} đ
-                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
 
-              </View>
-            </TouchableOpacity>
-          )
-        })}
-      </ScrollView>
+        <Text
+          style={{
+            height: 1,
+            borderColor: "#D0D0D0",
+            borderWidth: 2,
+            marginTop: 15,
+          }}
+        />
 
-      <Text
-        style={{
-          height: 1,
-          borderColor: "#D0D0D0",
-          borderWidth: 2,
-          marginTop: 15,
-        }}
-      />
+        {/* 10 new products */}
+        <Text style={{ padding: 10, fontSize: 18, fontWeight: "bold" }}>
+          Top deals
+        </Text>
 
-      {/* Sort */}
-      <View style={{ flexDirection: "row", justifyContent: "flex-end", marginHorizontal: 10 }}>
-        <View style={{ flexDirection: "row", marginHorizontal: 30, marginTop: 20, width: "30%", gap: 5, alignItems: "center" }}>
-          <Text style={{ fontSize: 13, fontWeight: "bold" }}>
-            Sort
-          </Text>
-          <DropDownPicker
-            style={{ borderColor: "#B7B7B7", height: 40 }}
-            open={openSort}
-            value={sortValue}
-            items={sortOptions}
-            setOpen={setOpenSort}
-            setValue={setSortValue}
-            placeholder="Sắp xếp"
-            placeholderStyle={{ color: "#999" }}
-            dropDownDirection="TOP"
-            listMode="SCROLLVIEW"
-            maxHeight={250}
-            showTickIcon={false}
-          />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 10 }}>
+          {lastProducts.map((item, index) => {
+            const scale = useSharedValue(1); // Giá trị scale ban đầu
+
+            const animatedStyle = useAnimatedStyle(() => ({
+              transform: [{ scale: scale.value }],
+            }));
+
+            const onPressIn = () => {
+              scale.value = withSpring(1.10); // Phóng to 5% khi nhấn
+            };
+
+            const onPressOut = () => {
+              scale.value = withSpring(1); // Trở về kích thước ban đầu
+            };
+
+            return (
+              <TouchableOpacity
+                key={`lastproduct${item.id}`}
+                onPress={() =>
+                  navigation.navigate("Info", {
+                    id: item.id,
+                    name: item.name,
+                    price: item.price,
+                    img1: item.img1,
+                    img2: item.img2,
+                    img3: item.img3,
+                    description: item.description,
+                    status: item.status,
+                    stoke: item.stoke,
+                  })
+                }
+                onPressIn={onPressIn}
+                onPressOut={onPressOut}
+                activeOpacity={0.6}
+                style={{ width: 150, marginVertical: 10, marginRight: 15, backgroundColor: "#e8e6e5", borderRadius: 25, alignItems: "center", justifyContent: "center", overflow: "hidden", elevation: 2 }}
+              >
+                <Animated.View style={[{ position: "relative", width: "100%", height: 150 }, animatedStyle]}>
+                  <Image
+                    style={{ width: "100%", height: "100%", borderRadius: 25, resizeMode: "cover" }}
+                    source={{ uri: `data:image/jpeg;base64,${item?.img1}` }}
+                  />
+                  {/* Huy hiệu Top Seller */}
+                  <View style={{ position: "absolute", top: 10, left: 10, backgroundColor: "#E31837", borderRadius: 12, paddingVertical: 4, paddingHorizontal: 8, }}>
+                    <Text style={{ color: "#FFF", fontSize: 12, fontWeight: 'bold' }}>#{index + 1}</Text>
+                  </View>
+                </Animated.View>
+
+                {/* Thông tin sản phẩm */}
+                <View style={{ paddingVertical: 10, alignItems: 'center' }}>
+                  <Text style={{ fontSize: 13, fontWeight: "600", color: "#333", marginBottom: 5, textAlign: "center", paddingHorizontal: 5 }} numberOfLines={1}>
+                    {item?.name}
+                  </Text>
+                  <Text style={{ fontSize: 14, fontWeight: "bold", color: "#E31837", marginBottom: 5 }}>
+                    {item?.price.toLocaleString("vi-VN")} đ
+                  </Text>
+
+                </View>
+              </TouchableOpacity>
+            )
+          })}
+        </ScrollView>
+
+        <Text
+          style={{
+            height: 1,
+            borderColor: "#D0D0D0",
+            borderWidth: 2,
+            marginTop: 15,
+          }}
+        />
+
+        {/* Sort */}
+        <View style={{ flexDirection: "row", justifyContent: "flex-end", marginHorizontal: 10 }}>
+          <View style={{ flexDirection: "row", marginHorizontal: 30, marginTop: 20, width: "30%", gap: 5, alignItems: "center" }}>
+            <Text style={{ fontSize: 13, fontWeight: "bold" }}>
+              Sort
+            </Text>
+            <DropDownPicker
+              style={{ borderColor: "#B7B7B7", height: 40 }}
+              open={openSort}
+              value={sortValue}
+              items={sortOptions}
+              setOpen={setOpenSort}
+              setValue={setSortValue}
+              placeholder="Sắp xếp"
+              placeholderStyle={{ color: "#999" }}
+              dropDownDirection="TOP"
+              listMode="SCROLLVIEW"
+              maxHeight={250}
+              showTickIcon={false}
+            />
+          </View>
         </View>
-      </View>
 
 
-    </SafeAreaView>
-  );
+      </SafeAreaView>
+    )
+  };
+
   return (
 
     <FlatList
@@ -582,7 +667,9 @@ const HomeScreen = () => {
       numColumns={2} // Hiển thị 2 cột trên mỗi hàng
       columnWrapperStyle={{ justifyContent: "space-between" }} // Căn chỉnh khoảng cách giữa các cột
       onEndReached={() => {
-        if (selectedCategory === "All") {
+        if (searchQuery) {
+          fetchSearchResults(searchQuery, page);
+        } else if (selectedCategory === "All") {
           fetchProducts(page);
         } else {
           fetchProductsByCategory(selectedCategory, page);

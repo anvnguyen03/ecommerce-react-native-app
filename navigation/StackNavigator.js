@@ -22,6 +22,7 @@ import ChangeEmailScreen from "../screens/ChangeEmailScreen";
 import ConfirmationScreen from "../screens/ConfirmationScreen";
 import OrderScreen from "../screens/OrderScreen";
 import SplashScreen from "../screens/SplashScreen";
+import OnboardingScreen from "../screens/OnboardingScreen";
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -84,6 +85,11 @@ const StackNavigator = () => {
         <Stack.Screen
           name="Splash"
           component={SplashScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Onboarding"
+          component={OnboardingScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen

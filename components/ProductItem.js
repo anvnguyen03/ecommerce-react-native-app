@@ -46,7 +46,7 @@ const ProductItem = ({ item }) => {
           img3: item.img3,
           description: item.description,
           status: item.status,
-          stock: item.stock,
+          stoke: item.stoke,
         })
       }
       onPressIn={onPressIn} // Khi nhấn vào
