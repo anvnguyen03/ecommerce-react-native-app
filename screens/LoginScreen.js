@@ -68,10 +68,10 @@ const LoginScreen = () => {
 
         navigation.replace("Main");
       })
-      .catch((error) => {
-        console.log('error login: ', error);
-        Alert.alert(`Login Error", "Invalid Email ${error}`);
-      });
+      .catch((error) => { 
+        console.log('error login screen: ', error);
+        Alert.alert("Login Error", `${error}`);
+      });``
   };
   return (
     <SafeAreaView

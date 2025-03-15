@@ -73,19 +73,17 @@ const ProfileScreen = () => {
 
       try {
         const response = await axios.get(
-          `${BASE_URL}/user/order/${userId}`,
+          `${BASE_URL}/user/my-orders/${userId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
 
-        console.log("✅ Dữ liệu trả về:", response.data);
-
         const ordersData = Array.isArray(response.data) ? response.data : [response.data];
 
         setOrders(ordersData);
       } catch (error) {
-        console.error("❌ Lỗi khi lấy đơn hàng:", error.response?.status, error.response?.data || error);
+        console.error("❌ Lỗi khi lấy đơn hàng:", error.response?.status);
       } finally {
         setLoading(false);
       }
@@ -94,9 +92,6 @@ const ProfileScreen = () => {
     fetchOrders();
   }, [userId, token]);
 
-
-
-  console.log("orders", orders);
   return (
     <ScrollView style={{ padding: 10, flex: 1, backgroundColor: "white" }}>
       <Text style={{ fontSize: 16, fontWeight: "bold" }}>
