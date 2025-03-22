@@ -69,7 +69,7 @@ const ProductItem = ({ item }) => {
           </Text>
 
           <View style={styles.priceRow}>
-            <Text style={styles.price}>₫{item?.price.toLocaleString()}</Text>
+            <Text style={styles.price}>{item?.price.toLocaleString()} ₫</Text>
           </View>
 
           <Text

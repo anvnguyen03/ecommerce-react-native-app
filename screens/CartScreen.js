@@ -53,7 +53,7 @@ const CartScreen = () => {
 
       <View style={styles.subtotalContainer}>
         <Text style={styles.subtotalText}>Subtotal:</Text>
-        <Text style={styles.totalPrice}>{total}</Text>
+        <Text style={styles.totalPrice}>{total.toLocaleString()} ₫</Text>
       </View>
       <Text style={styles.emiDetails}>EMI details Available</Text>
 
@@ -75,7 +75,7 @@ const CartScreen = () => {
               <Image style={styles.itemImage} source={{ uri: `data:image/jpeg;base64,${item?.img || item?.img1}` }} />
               <View style={styles.itemDetails}>
                 <Text numberOfLines={3} style={styles.itemTitle}>{item.productName || item.name}</Text>
-                <Text style={styles.itemPrice}>{item.price}</Text>
+                <Text style={styles.itemPrice}>{item.price.toLocaleString()} ₫</Text>
                 <Image style={styles.stockImage} source={{ uri: "https://example.com/stock.png" }} />
                 <Text style={styles.inStock}>In Stock</Text>
               </View>
